@@ -62,10 +62,12 @@
                 <div class="mb-4">
                     <h2>Add Image</h2>
                     <input type="file" id="imageUpdate" name="imageUpdate" accept="image/*">
+                    <img src="{{ asset('storage/'.$emp->imageUpdate) }}" width="70px" height="70px" alt="Image">
                 </div>
                 <div class="mb-4">
                     <h2>Add PDF</h2>
                     <input type="file" id="pdfUpdate" name="pdfUpdate" accept=".pdf">
+                    <iframe src="{{ asset('storage/'.$emp->pdfUpdate) }}" width="70px" height="70px" alt="Image"></iframe>
                 </div>
                 <button type="submit" class="btn btn-primary mt-3">Update</button>
             </form>

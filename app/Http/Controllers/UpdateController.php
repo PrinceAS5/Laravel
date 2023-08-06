@@ -7,6 +7,7 @@ use App\Models\EmployeeUpdate;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class UpdateController extends Controller
 {
@@ -42,16 +43,16 @@ class UpdateController extends Controller
             $authenticatedUser = Auth::user();
 
             // Save the files to the storage (e.g., public/uploads) and get their paths
-            $imageName = time().$imageUpdate->getClientOriginalName();
+            $imageName = time() . $imageUpdate->getClientOriginalName();
             $imagePath = $imageUpdate ? $imageUpdate->storeAs('images', $imageName, 'public') : null;
-            $pdfName = time().$pdfUpdate->getClientOriginalName();
+            $pdfName = time() . $pdfUpdate->getClientOriginalName();
             $pdfPath = $pdfUpdate ? $pdfUpdate->storeAs('pdf',  $pdfName, 'public') : null;
             // Create a new update record in the database using the EmployeeUpdate model
             $update = EmployeeUpdate::create([
                 'name' => $authenticatedUser->name,
                 'textUpdate' => $textUpdate,
-                'imageUpdate' => '/storage/'.$imagePath,
-                'pdfUpdate' => '/storage/'.$pdfPath,
+                'imageUpdate' => $imagePath,
+                'pdfUpdate' => $pdfPath,
                 'department' => $dept,
             ]);
 
@@ -80,6 +81,10 @@ class UpdateController extends Controller
         $emp = EmployeeUpdate::find($id);
         return view('edit', compact('emp'));
     }
+    public function add($id)
+    {
+        return view('add', compact('id'));
+    }
     public function editUpdate(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
@@ -106,11 +111,11 @@ class UpdateController extends Controller
             $authenticatedUser = Auth::user();
 
             // Save the files to the storage (e.g., public/uploads) and get their paths
-            if($imageUpdate)
-            $imageName = time().$imageUpdate->getClientOriginalName();
+            if ($imageUpdate)
+                $imageName = time() . $imageUpdate->getClientOriginalName();
             $imagePath = $imageUpdate ? $imageUpdate->storeAs('images', $imageName, 'public') : null;
-            if($pdfUpdate)
-            $pdfName = time().$pdfUpdate->getClientOriginalName();
+            if ($pdfUpdate)
+                $pdfName = time() . $pdfUpdate->getClientOriginalName();
             $pdfPath = $pdfUpdate ? $pdfUpdate->storeAs('pdf',  $pdfName, 'public') : null;
             // Create a new update record in the database using the EmployeeUpdate model
             $employeeUpdate = EmployeeUpdate::where('id', $id)->first();
@@ -123,8 +128,8 @@ class UpdateController extends Controller
             $update = $employeeUpdate->update([
                 'name' => $authenticatedUser->name,
                 'textUpdate' => $textUpdate,
-                'imageUpdate' => '/storage/'.$imagePath,
-                'pdfUpdate' => '/storage/'.$pdfPath,
+                'imageUpdate' => $imagePath,
+                'pdfUpdate' => $pdfPath,
                 'department' => $dept,
             ]);
 
@@ -156,22 +161,31 @@ class UpdateController extends Controller
         }
     }
 
-    public function delete($id){
-         // Find the EmployeeUpdate record by ID
-         $employeeUpdate = EmployeeUpdate::find($id);
-         if ($employeeUpdate) {
-             // Delete the record from the database
-             $employeeUpdate->delete();
-             $employees = EmployeeUpdate::where('department', $employeeUpdate->department)->get();
-             $deprt = $employeeUpdate->department;
-             $today = Carbon::today()->toDateString();
-             $current = $employees->where('updated_at', '>=', $today . ' 00:00:00')
-                 ->where('updated_at', '<=', $today . ' 23:59:59')
-                 ->count();
-             return view('admin.index', compact('employees', 'current', 'deprt'));
-         } else {
-             // If the record is not found, redirect or return with an error message
-             return redirect()->route('login')->with('error', 'Employee record not found.');
-         }
+    public function delete($id)
+    {
+
+        try {
+            // Find the EmployeeUpdate record by ID
+            $employeeUpdate = EmployeeUpdate::find($id);
+            if (Storage::exists('public/' . $employeeUpdate->imageUpdate))
+                Storage::delete('public/' . $employeeUpdate->imageUpdate);
+            if (Storage::exists('public/' . $employeeUpdate->pdfUpdate))
+                Storage::delete('public/' . $employeeUpdate->pdfUpdate);
+
+            $employeeUpdate->delete();
+            $employees = EmployeeUpdate::where('department', $employeeUpdate->department)->get();
+            $deprt = $employeeUpdate->department;
+            $today = Carbon::today()->toDateString();
+            $current = $employees->where('updated_at', '>=', $today . ' 00:00:00')
+                ->where('updated_at', '<=', $today . ' 23:59:59')
+                ->count();
+            return view('admin.index', compact('employees', 'current', 'deprt'));
+        } catch (\Exception $e) {
+            // Handle any errors that occurred during database insertion
+            return redirect()->back()->with([
+                'status' => 'Error: Could not delete file',
+                'class' => 'danger',
+            ]);
+        }
     }
 }

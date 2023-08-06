@@ -15,6 +15,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/update-page', [UpdateController::class, 'index']);
     Route::delete('/logout', [AuthController::class, 'logout'])->name('logout');
     Route::post('/store', [UpdateController::class, 'update'])->name('store');
+    Route::post('/add', [UpdateController::class, 'update'])->name('add');
+    Route::post('admin-add/{id}', [UpdateController::class, 'add']);
     Route::post('edit-update/{id}', [UpdateController::class, 'edit'])->name('edit');
     Route::post('editUpdate/{id}', [UpdateController::class, 'editUpdate'])->name('update');
     Route::delete('delete/{id}', [UpdateController::class, 'delete'])->name('delete');

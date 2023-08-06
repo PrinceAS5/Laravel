@@ -96,7 +96,7 @@
                                             <td>{{ $data->textUpdate }}</td>
                                             <td>
                                                 @if (!empty($data->pdfUpdate))
-                                                    <iframe src="{{ asset($data->pdfUpdate) }}" width="300"
+                                                    <iframe src="{{ asset('storage/'.$data->pdfUpdate) }}" width="300"
                                                         alt="no pdf" height="200" frameborder="0"></iframe>
                                                 @else
                                                     No PDF
@@ -104,7 +104,7 @@
                                             </td>
                                             <td>
                                                 @if (!empty($data->imageUpdate))
-                                                    <iframe src="{{ asset($data->imageUpdate) }}" width="300"
+                                                    <iframe src="{{ asset('storage/'.$data->imageUpdate) }}" width="300"
                                                         height="200" frameborder="0"></iframe>
                                                 @else
                                                     No Image
@@ -112,9 +112,12 @@
                                             </td>
                                             <td>
                                                 <!-- Add button with 'Add' text and an icon -->
-                                                <a href="{{ url('your-add-url') }}">
-                                                    <i class="fas fa-plus"></i> Add
-                                                </a>
+                                                <form action="{{ url('admin-add/' . $data->id) }}" method="POST">
+                                                    @csrf
+                                                    <button type="submit">
+                                                        <i class="fas fa-plus"></i> Add
+                                                    </button>
+                                                </form>
 
                                                 <!-- Edit button wrapped in a form with 'Edit' text and an icon -->
                                                 <form action="{{ url('edit-update/' . $data->id) }}" method="POST">
